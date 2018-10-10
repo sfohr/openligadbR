@@ -53,15 +53,25 @@ query_openligadb <- function(url, simplify2dataframe = FALSE) {
 
 parse_match <- function(x) {
 
-  results <- purrr::map_df(x$MatchResults, ~ data.frame(.x, stringsAsFactors = FALSE))
-  colnames(results) <- c("result_id", "result_time", "score1", "score2",
-                         "result_order_id", "result_type_id", "result_description")
-  results <- results[order(results$result_order_id), ]
-  results <- data.frame(score1_ht = results$score1[[1]],
-                        score2_ht = results$score2[[1]],
-                        score1 = results$score1[[2]],
-                        score2 = results$score2[[2]],
-                        stringsAsFactors = FALSE)
+  #if (exists("MatchResults", where = x)) {
+  if (length(x$MatchResults) != 0) {
+    results <- purrr::map_df(x$MatchResults, ~ data.frame(.x, stringsAsFactors = FALSE))
+    colnames(results) <- c("result_id", "result_time", "score1", "score2",
+                           "result_order_id", "result_type_id", "result_description")
+    results <- results[order(results$result_order_id), ]
+    results <- data.frame(score1_ht = results$score1[[1]],
+                          score2_ht = results$score2[[1]],
+                          score1 = results$score1[[2]],
+                          score2 = results$score2[[2]],
+                          stringsAsFactors = FALSE)
+  } else {
+    results <- data.frame(score1_ht = NA_integer_,
+                          score2_ht = NA_integer_,
+                          score1 = NA_integer_,
+                          score2 = NA_integer_,
+                          stringsAsFactors = FALSE)
+  }
+
 
   #group <- x$Group
   match <- data.frame(
@@ -79,6 +89,7 @@ parse_match <- function(x) {
     location_city = ifelse(is.null(x$Location$LocationCity), NA, x$Location$LocationCity),
     viewer_count = ifelse(is.null(x$NumberOfViewers), NA, x$NumberOfViewers),
     last_update_time =  lubridate::as_datetime(x$LastUpdateDateTime, tz = "Europe/Berlin"),
+    match_is_finished = x$MatchIsFinished,
     stringsAsFactors = FALSE
   )
 
